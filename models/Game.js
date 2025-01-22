@@ -5,7 +5,7 @@ const gameSchema = new mongoose.Schema({
         description: {type: String, required: true},
         genre: {type: String, required: true},
         producer: {type: String, required: true},
-        release_date: {type: Number, required: true}
+        release_date: {type: Date}
 
     }, {
         toJSON: {

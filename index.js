@@ -16,7 +16,8 @@ app.use((req, res, next) => {
 });
 
 app.use((req, res, next) => {
-    if (req.header('Accept') === 'application/json' || req.method === 'OPTIONS' ){
+    const acceptHeader = req.header('Accept')
+    if (acceptHeader === 'application/json' || req.method === 'OPTIONS' ){
         next();
     } else {
         res.status(406).json({message: 'Illegal format'});
@@ -26,6 +27,7 @@ app.use((req, res, next) => {
 app.use((req,res, next) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Headers','Origin, Content-Type, Access');
+    //Cache - control
 
     next();
 });
@@ -35,4 +37,3 @@ app.use('/',gamesRouter);
 app.listen(process.env.EXPRESS_PORT, () => {
     console.log(`Server is listening on port ${process.env.EXPRESS_PORT}`);
 });
-// index
