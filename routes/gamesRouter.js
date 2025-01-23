@@ -6,9 +6,6 @@ const gamesRouter= new Router();
 
 // seeding
 gamesRouter.post('/games/:amount' || '/games/:amount/reset',async (req, res) => {
-    //  heeft de body een body.method === seed?
-    //  seed
-    //  else res. error
     try {
         const numGames = parseInt(req.params.amount, 10);
         const reset = req.query.reset === 'true';
@@ -37,6 +34,7 @@ gamesRouter.post('/games/:amount' || '/games/:amount/reset',async (req, res) => 
     }
 })
 
+//options
 gamesRouter.options('/games', (req, res)=> {
     res.setHeader('Allow', 'GET,POST,OPTIONS');
     res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
