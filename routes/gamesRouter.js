@@ -32,7 +32,7 @@ gamesRouter.post('/games/:amount' || '/games/:amount/reset',async (req, res) => 
     } catch (error){
         res.status(500).json({message: 'fout met seeden'});
     }
-})
+});
 
 //options
 gamesRouter.options('/games', (req, res)=> {
@@ -53,14 +53,34 @@ gamesRouter.options('/games/:id', (req, res)=> {
 gamesRouter.get('/games', async (req, res) => {
     try {
         console.log('GET /games');
-        const games = await Game.find({});
 
-        if (!games){
-            return res.status(404).json({message: 'game not found'});
+        // zet strings om naar integers
+        const page = parseInt(req.params.page) || 1;
+        const limit = parseInt(req.params.limit) || 10;
+
+        // totaal aantal documenten in mongoDB
+        const totalGames = await Game.countDocuments();
+        const totalPages = Math.ceil(totalGames / limit);
+
+        // haal de items van pagina op en sla de rest over
+        const offset = (page - 1) * limit;
+        const paginatedGames = await Game.find()
+            .skip(offset)
+            .limit(limit);
+
+        const links = {
+            first: { page: 1, href: `/games?page=1&limit=${limit}` },
+            last: { page: totalPages, href: `/games?page=${totalPages}&limit=${limit}` },
+            previous: page > 1 ? { page: page - 1, href: `/games?page=${page - 1}&limit=${limit}` } : null,
+            next: page < totalPages ? { page: page + 1, href: `/games?page=${page + 1}&limit=${limit}` } : null
+        };
+
+        if (paginatedGames.length === 0) {
+            return res.status(404).json({ message: 'No games found' });
         }
 
         res.status(200).json({
-            items: games,
+            items: paginatedGames,
             _links: {
                 self: {
                     href: process.env.BASE_URL
@@ -69,27 +89,13 @@ gamesRouter.get('/games', async (req, res) => {
                     href: process.env.BASE_URL
                 }
             },
-            // pagination: {
-            //     currentPage: 1,
-            //     currentItems: 6,
-            //     totalPages: 2,
-            //     totalItems: 12,
-            //     _links: {
-            //         first: {
-            //             page: 1,
-            //             href: process.env.PAGINATION_FIRST
-            //         },
-            //         last: {
-            //             page: 2,
-            //             href: process.env.PAGINATION_LAST
-            //         },
-            //         previous: null,
-            //         next: {
-            //             page: 2,
-            //             href: process.env.PAGINATION_NEXT
-            //         }
-            //     }
-            // }
+            pagination: {
+                currentPage: page,
+                currentItems: paginatedGames.length,
+                totalPages: totalPages,
+                totalItems: totalGames,
+                _links: links
+            }
         });
     } catch (error){
         res.status(500).json({message: 'error.message'});
