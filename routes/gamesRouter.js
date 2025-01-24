@@ -55,8 +55,8 @@ gamesRouter.get('/games', async (req, res) => {
         console.log('GET /games');
 
         // zet strings om naar integers
-        const page = parseInt(req.params.page) || 1;
-        const limit = parseInt(req.params.limit) || 10;
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
 
         // totaal aantal documenten in mongoDB
         const totalGames = await Game.countDocuments();
