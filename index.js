@@ -2,10 +2,12 @@ import express from 'express';
 import mongoose from "mongoose";
 import gamesRouter from "./routes/gamesRouter.js";
 
+// maak express applicatie aan
 const app = express();
 
 await mongoose.connect(process.env.MONGO_DB);
 
+// middleware
 app.use(express.json());
 app.use(express.urlencoded({extended:true}));
 
@@ -24,11 +26,10 @@ app.use((req, res, next) => {
     }
 });
 
+// CORS
 app.use((req,res, next) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Headers','Origin, Content-Type, Access');
-    //Cache - control
-
     next();
 });
 

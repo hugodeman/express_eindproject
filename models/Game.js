@@ -5,12 +5,14 @@ const gameSchema = new mongoose.Schema({
         description: {type: String, required: true},
         genre: {type: String, required: true},
         producer: {type: String, required: true},
-        release_date: {type: Date}
+        release_date: {type: Date},
+        favorite: { type: Boolean, default: false }
 
     }, {
         toJSON: {
             virtuals: true,
             versionKey: false,
+            // past object aan voordat het JSON wordt
             transform: (doc, ret) => {
 
                 ret._links = {
@@ -21,7 +23,7 @@ const gameSchema = new mongoose.Schema({
                         href: process.env.BASE_URL
                     }
                 }
-
+                // maakt id 'ontzichbaar'
                 delete ret._id
             }
         },

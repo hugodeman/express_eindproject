@@ -17,8 +17,8 @@ gamesRouter.post('/games/:amount' || '/games/:amount/reset',async (req, res) => 
         if(req.body.method === 'SEED') {
             for (let i = 0; i < numGames; i++) {
                 let game = new Game({
-                    title: faker.lorem.slug(),
-                    description: faker.lorem.paragraph(),
+                    title: faker.commerce.productName(),
+                    description: faker.lorem.sentence(),
                     genre: faker.lorem.words(),
                     producer: faker.company.name(),
                     release_date: faker.date.between({from: '2000-01-01T00:00:00.000Z', to: '2024-01-01T00:00:00.000Z'})
@@ -63,9 +63,9 @@ gamesRouter.get('/games', async (req, res) => {
         const totalPages = Math.ceil(totalGames / limit);
 
         // haal de items van pagina op en sla de rest over
-        const offset = (page - 1) * limit;
-        const paginatedGames = await Game.find()
-            .skip(offset)
+        const startIndex = (page - 1) * limit;
+        const paginatedGames = await Game.find({})
+            .skip(startIndex)
             .limit(limit);
 
         const links = {
@@ -75,7 +75,7 @@ gamesRouter.get('/games', async (req, res) => {
             next: page < totalPages ? { page: page + 1, href: `/games?page=${page + 1}&limit=${limit}` } : null
         };
 
-        if (paginatedGames.length === 0) {
+        if (!paginatedGames) {
             return res.status(404).json({ message: 'No games found' });
         }
 
@@ -83,15 +83,14 @@ gamesRouter.get('/games', async (req, res) => {
             items: paginatedGames,
             _links: {
                 self: {
-                    href: process.env.BASE_URL
+                    href: `${process.env.BASE_URL}`
                 },
                 collection: {
-                    href: process.env.BASE_URL
+                    href: `${process.env.BASE_URL}`
                 }
             },
             pagination: {
                 currentPage: page,
-                currentItems: paginatedGames.length,
                 totalPages: totalPages,
                 totalItems: totalGames,
                 _links: links
@@ -109,7 +108,7 @@ gamesRouter.get('/games/:id', async (req, res) => {
         const games = await Game.findById(id);
 
         if (!games){
-            return res.status(404).json({message: 'product not found'});
+            return res.status(404).json({message: 'game not found'});
         }
 
         res.status(200).json(games);
@@ -154,16 +153,15 @@ gamesRouter.put('/games/:id',async (req, res) => {
         const games = await Game.findByIdAndUpdate(id, req.body);
 
         const title = req.body.title;
-        const description = req.body.title;
-        const genre = req.body.title;
-        const producer = req.body.title;
-        const release_date = req.body.title;
+        const description = req.body.description;
+        const genre = req.body.genre;
+        const producer = req.body.producer;
 
         if (!games){
-            return res.status(404).json({message: 'product not found'});
+            return res.status(404).json({message: 'game not found'});
         }
 
-        if(!title || !description || !genre || !producer || !release_date){
+        if(!title || !description || !genre || !producer ){
             return res.status(400).json({message: 'Velden mogen niet leeg zijn'})
         }
 
@@ -177,23 +175,20 @@ gamesRouter.put('/games/:id',async (req, res) => {
 gamesRouter.patch('/games/:id', async (req,res)=>{
     try {
         const id = req.params.id;
-        const games = await Game.findByIdAndUpdate(id, req.body);
+        const game = await Game.findById(id);
 
-        const title = req.body.title;
-        const description = req.body.title;
-        const genre = req.body.title;
-        const producer = req.body.title;
-        const release_date = req.body.title;
-
-        if (!games){
-            return res.status(404).json({message: 'product not found'});
+        if (!game){
+            return res.status(404).json({message: 'game not found'});
         }
 
-        if(!title || !description || !genre || !producer || !release_date){
-            return req.bodyUsed;
-        }
+        // toggle favoriet en sla op
+        const updatedGame = await Game.findByIdAndUpdate(
+            id,
+            { favorite: !game.favorite },
+            { new: true }
+        );
 
-        res.status(200).json(games)
+        res.status(200).json(updatedGame)
     } catch (error){
         res.status(500).json({message: 'error.message'});
     }
@@ -206,7 +201,7 @@ gamesRouter.delete('/games/:id',async (req, res) => {
         const games = await Game.findByIdAndDelete(id, req.body);
 
         if (!games){
-            return res.status(404).json({message: 'product not found'})
+            return res.status(404).json({message: 'game not found'})
         }
 
         res.status(204).json(games);
